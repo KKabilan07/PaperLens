@@ -73,7 +73,7 @@ const Login = ({ onClose, isLogin: initialIsLogin = false }) => {
   return (
     <div className="login-overlay" onClick={onClose}>
       <div className="login-card" onClick={(e) => e.stopPropagation()}>
-        <div className="close-btn" onClick={onClose}>×</div>
+        <div className="close-btn" onClick={onClose}>x</div>
         
         <h2>{isLoginMode ? 'Welcome Back' : 'Create Account'}</h2>
         <p className="subtitle">
