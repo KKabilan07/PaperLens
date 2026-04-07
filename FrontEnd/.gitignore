@@ -26,3 +26,51 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# 🔐 Environment variables
+.env
+.env.*
+*.env
+
+# 🐍 Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 🔄 Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# 📦 Python build files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# 🧪 Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# 🧾 Logs
+*.log
+
+# 💻 IDE files (PyCharm / VSCode)
+.idea/
+.vscode/
+*.iml
+
+# 🗂 OS files
+.DS_Store
+Thumbs.db
+
+# 🔑 Secrets / keys
+*.pem
+*.key
+
+# 📁 Database (if local)
+*.sqlite3
+*.db
