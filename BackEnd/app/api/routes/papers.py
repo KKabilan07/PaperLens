@@ -62,6 +62,13 @@ async def upload_paper(
         supabase = get_supabase()
         user_id = user["user_id"]
         
+        # Validate file type - must be PDF
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only PDF files are allowed"
+            )
+        
         # Read file content
         contents = await file.read()
         
@@ -69,6 +76,14 @@ async def upload_paper(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Empty file"
+            )
+        
+        # Validate file size - max 50MB
+        MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB in bytes
+        if len(contents) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File size exceeds maximum limit of 50MB. Your file is {len(contents) / (1024*1024):.2f}MB"
             )
         
         # Parse PDF
