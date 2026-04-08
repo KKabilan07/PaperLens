@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPBasicCredentials
 from app.models.chat import ChatResponse, QuestionRequest, QuestionResponse
 from app.services.supabase_client import get_supabase
-from app.services.explainer import generate_explanation
+from app.services.rag_pipeline import generate_rag_response
 from app.utils.security import get_current_user
 import uuid
 from datetime import datetime
@@ -17,7 +17,8 @@ async def ask_question(
     credentials = Depends(security)
 ):
     """
-    Ask a question about a specific paper
+    Ask a question about a specific paper using RAG
+    Retrieves relevant sections and generates contextual answer
     """
     try:
         user = get_current_user(credentials)
@@ -37,15 +38,16 @@ async def ask_question(
         
         paper_title = paper_response.data[0]["title"]
         
-        # Fetch relevant sections for context
-        sections_response = supabase.table("sections").select("content").eq(
-            "paper_id", request.paper_id
-        ).limit(3).execute()
+        # Generate RAG response (retrieval + generation)
+        rag_result = generate_rag_response(
+            question=request.question,
+            paper_id=request.paper_id,
+            paper_title=paper_title,
+            top_k=5  # Retrieve top 5 relevant sections
+        )
         
-        context = " ".join([s["content"] for s in sections_response.data])
-        
-        # Generate answer
-        answer = generate_explanation(request.question, context, paper_title)
+        answer = rag_result.get("answer", "Error generating response")
+        status_code = rag_result.get("status", "unknown")
         
         # Store chat in database
         chat_id = str(uuid.uuid4())
@@ -55,6 +57,7 @@ async def ask_question(
             "paper_id": request.paper_id,
             "question": request.question,
             "answer": answer,
+            "status": status_code,
             "created_at": datetime.utcnow().isoformat()
         }
         

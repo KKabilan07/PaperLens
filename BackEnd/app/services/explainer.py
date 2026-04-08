@@ -1,19 +1,11 @@
 import os
 from typing import Optional
-import google.generativeai as genai
-
-# Initialize Gemini API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-
-def _get_gemini_model():
-    """Get Gemini model instance"""
-    return genai.GenerativeModel("gemini-pro")
+from app.services.llm_provider_service import generate_with_fallback
 
 
 def generate_explanation(question: str, context: str, paper_title: str) -> str:
     """
-    Generate AI response to a question about a paper using Gemini
+    Generate AI response to a question about a paper using multi-provider LLM
     
     Args:
         question: User's question
@@ -24,8 +16,6 @@ def generate_explanation(question: str, context: str, paper_title: str) -> str:
         AI-generated explanation
     """
     try:
-        model = _get_gemini_model()
-        
         prompt = f"""You are an expert academic assistant. Based on the following context from the paper "{paper_title}", 
         please answer this question clearly and concisely:
 
@@ -36,8 +26,8 @@ def generate_explanation(question: str, context: str, paper_title: str) -> str:
 
         Provide a detailed and accurate response based on the paper content."""
 
-        response = model.generate_content(prompt)
-        return response.text
+        result = generate_with_fallback(prompt)
+        return result.get("answer", "Error generating explanation")
     
     except Exception as e:
         return f"Error generating explanation: {str(e)}"
@@ -45,7 +35,7 @@ def generate_explanation(question: str, context: str, paper_title: str) -> str:
 
 def generate_summary(text: str, paper_title: str) -> str:
     """
-    Generate a comprehensive summary of the paper using Gemini
+    Generate a comprehensive summary of the paper using multi-provider LLM
     
     Args:
         text: Full text of the paper
@@ -55,9 +45,7 @@ def generate_summary(text: str, paper_title: str) -> str:
         AI-generated summary of the paper
     """
     try:
-        model = _get_gemini_model()
-        
-        # Limit text to avoid token limits (Gemini Pro has 32k token limit)
+        # Limit text to avoid token limits
         text_truncated = text[:8000]
         
         prompt = f"""Please provide a comprehensive but concise summary of the following academic paper titled "{paper_title}".
@@ -73,8 +61,8 @@ def generate_summary(text: str, paper_title: str) -> str:
         
         Provide a well-structured summary."""
 
-        response = model.generate_content(prompt)
-        return response.text
+        result = generate_with_fallback(prompt)
+        return result.get("answer", "Error generating summary")
     
     except Exception as e:
         return f"Error generating summary: {str(e)}"
@@ -82,7 +70,7 @@ def generate_summary(text: str, paper_title: str) -> str:
 
 def compare_papers(paper1_text: str, paper2_text: str, paper1_title: str, paper2_title: str) -> dict:
     """
-    Compare two papers using Gemini
+    Compare two papers using multi-provider LLM
     
     Args:
         paper1_text: Text of first paper
@@ -94,8 +82,6 @@ def compare_papers(paper1_text: str, paper2_text: str, paper1_title: str, paper2
         Comparison result with similarities, differences, and common topics
     """
     try:
-        model = _get_gemini_model()
-        
         # Truncate texts to avoid token limits
         text1_truncated = paper1_text[:5000]
         text2_truncated = paper2_text[:5000]
@@ -116,13 +102,14 @@ def compare_papers(paper1_text: str, paper2_text: str, paper1_title: str, paper2
 
         Format your response as a structured analysis."""
 
-        response = model.generate_content(prompt)
+        result = generate_with_fallback(prompt)
         
         return {
             "paper1": paper1_title,
             "paper2": paper2_title,
-            "analysis": response.text,
-            "status": "completed"
+            "analysis": result.get("answer", "Error comparing papers"),
+            "status": "success" if result.get("success") else "error",
+            "provider": result.get("provider_used")
         }
     
     except Exception as e:
@@ -130,5 +117,6 @@ def compare_papers(paper1_text: str, paper2_text: str, paper1_title: str, paper2
             "paper1": paper1_title,
             "paper2": paper2_title,
             "analysis": f"Error comparing papers: {str(e)}",
-            "status": "error"
+            "status": "error",
+            "provider": None
         }

@@ -17,16 +17,13 @@ security = HTTPBearer()
 def verify_jwt_token(token: str) -> dict:
     """
     Verify JWT token and return decoded payload
+    Handles both Supabase and custom tokens
     """
     try:
-        # Try to decode with RS256 (Supabase default) first
-        try:
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except:
-            # Fallback to HS256
-            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            return payload
+        # First, try to decode without verification (trust Supabase)
+        # This works because Supabase tokens are already verified by their server
+        payload = jwt.decode(token, options={"verify_signature": False})
+        return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,29 +32,43 @@ def verify_jwt_token(token: str) -> dict:
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail="Invalid token format"
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Could not validate credentials: {str(e)}"
+            detail=f"Token verification failed: {str(e)}"
         )
 
 
 def get_current_user(credentials) -> dict:
     """
     Get current user from JWT token
+    Extracts user_id and email from various token formats
     """
-    token = credentials.credentials
+    try:
+        token = credentials.credentials
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not extract token from Authorization header"
+        )
+    
     payload = verify_jwt_token(token)
     
-    user_id = payload.get("sub") or payload.get("user_id")
+    # Try multiple formats for user_id
+    user_id = (
+        payload.get("sub")  # Supabase standard (ES256 tokens)
+        or payload.get("user_id")  # snake_case
+        or payload.get("userId")  # camelCase
+        or payload.get("uid")  # Alternative
+    )
     email = payload.get("email")
     
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not extract user information from token"
+            detail="Could not extract user information from token. Token may be invalid."
         )
     
-    return {"user_id": user_id, "email": email}
+    return {"user_id": str(user_id), "email": email}

@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPBasicCredentials
 from app.models.paper import PaperResponse, PaperUploadResponse, PaperWithSections
 from app.services.supabase_client import get_supabase
 from app.services.pdf_parser import parse_pdf
+from app.services.embedding_storage_service import process_pdf_to_embeddings
 from app.utils.security import get_current_user
 from app.models.paper import Section, Paper
 import uuid
@@ -128,13 +129,24 @@ async def upload_paper(
         file_path = f"{user_id}/{paper_id}/{file.filename}"
         supabase.storage.from_("papers").upload(file_path, contents)
         
+        # Generate embeddings for RAG (async-like, but we'll do it synchronously for now)
+        try:
+            embedding_result = process_pdf_to_embeddings(contents, paper_id, paper_title)
+            embedding_status = embedding_result.get("status", "unknown")
+            total_chunks = embedding_result.get("total_chunks", 0)
+        except Exception as e:
+            embedding_status = "failed"
+            total_chunks = 0
+            print(f"Embedding generation failed: {str(e)}")
+        
         return PaperUploadResponse(
             success=True,
             paper_id=paper_id,
             title=paper_title,
             sections_count=sections_created,
             word_count=parsed_data["word_count"],
-            message=f"Paper '{paper_title}' uploaded successfully with {sections_created} sections"
+            message=f"Paper '{paper_title}' uploaded successfully with {sections_created} sections. "
+                    f"Embeddings: {total_chunks} chunks processed ({embedding_status})"
         )
     
     except HTTPException:

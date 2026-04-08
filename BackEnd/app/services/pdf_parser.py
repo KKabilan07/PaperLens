@@ -21,6 +21,9 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> Dict:
         for page in pdf_reader.pages:
             text += page.extract_text() + "\n"
         
+        # Clean up extracted text - remove common PDF artifacts
+        text = _clean_pdf_text(text)
+        
         metadata = pdf_reader.metadata or {}
         
         return {
@@ -38,41 +41,104 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> Dict:
         raise Exception(f"Error parsing PDF: {str(e)}")
 
 
-def extract_sections_from_text(text: str, max_section_length: int = 1000) -> List[Dict]:
+def _clean_pdf_text(text: str) -> str:
     """
-    Extract sections from PDF text using simple heuristics
+    Clean up PDF-extracted text by removing common artifacts
+    """
+    lines = text.split("\n")
+    cleaned_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        # Skip common PDF header/footer patterns
+        if stripped and not any([
+            # Email addresses and URLs (common in headers/footers)
+            re.match(r"^\S+@\S+\.\S+$", stripped),
+            # Page numbers and metadata
+            re.match(r"^(Page \d+|pp\. \d+|\d+\s*$)", stripped),
+            # Common footer text
+            re.match(r"^(www\.|http|doi:|Available online)", stripped, re.I),
+            # Received/Accepted dates in metadata format
+            re.match(r"^(Received|Accepted|Available online|Published)\s+", stripped, re.I),
+            # Journal name patterns (single line, all caps or title case)
+            (stripped.isupper() and 8 < len(stripped) < 100 and re.match(r"^[A-Z\s&-]+$", stripped) and stripped.count(" ") <= 3),
+            # Author affiliation patterns (numbers with superscripts or letters followed by keywords)
+            re.match(r"^[a-z]+(Department|Faculty|University|Institute)", stripped, re.I),
+        ]):
+            cleaned_lines.append(line)
+    
+    # Join lines and normalize whitespace
+    cleaned_text = "\n".join(cleaned_lines)
+    
+    # Remove multiple consecutive newlines (keep max 2)
+    cleaned_text = re.sub(r"\n\n\n+", "\n\n", cleaned_text)
+    
+    return cleaned_text
+
+
+def extract_sections_from_text(text: str, max_section_length: int = 5000) -> List[Dict]:
+    """
+    Extract sections from PDF text using improved heuristics
     
     Args:
         text: Raw text from PDF
-        max_section_length: Maximum characters per section
+        max_section_length: Maximum characters per section before splitting (for very large sections)
     
     Returns:
         List of section dicts with: section_name, content, page_numbers
     """
     sections = []
-    
-    # Split by common section patterns
     lines = text.split("\n")
     
     current_section = {
-        "section_name": "Introduction",
+        "section_name": "Start",
         "content": "",
         "page_numbers": [],
-        "start_line": 0
     }
     
-    for i, line in enumerate(lines):
+    def is_section_header(line: str) -> bool:
+        """
+        Detect if a line is likely a section header
+        """
         line_stripped = line.strip()
         
-        # Detect section headers (all caps, numbered, or common patterns)
-        is_header = (
-            (line_stripped.isupper() and len(line_stripped) > 3) or
-            re.match(r"^[\d]+\.\s+", line_stripped) or
-            re.match(r"^(Abstract|Introduction|Method|Results?|Discussion|Conclusion|References)", line_stripped, re.I)
-        )
+        # Skip empty lines and very short lines
+        if len(line_stripped) < 2:
+            return False
         
-        if is_header and len(current_section["content"]) > 0:
-            # Save previous section
+        # Pattern 1: Numbered sections like "1.", "1.1", "2. Section Name"
+        if re.match(r"^[\d]+(\.\d+)*\.\s+\w", line_stripped):
+            return True
+        
+        # Pattern 2: Common academic paper sections (including variations)
+        academic_sections = r"^(abstract|introduction|related\s+work|literature\s+review|method|methodology|approach|results|findings|discussion|conclusion|conclusions|references|acknowledgment|acknowledgements|appendix|future\s+work|keywords)"
+        if re.match(academic_sections, line_stripped, re.IGNORECASE):
+            return True
+        
+        # Pattern 3: ALL CAPS headers (but not too long, usually < 80 chars)
+        # Also require at least 4 characters and not all digits
+        if (line_stripped.isupper() and 
+            len(line_stripped) > 3 and 
+            len(line_stripped) < 80 and
+            line_stripped.count(" ") <= 5 and
+            not line_stripped.replace(" ", "").isdigit()):
+            return True
+        
+        # Pattern 4: Short lines that end with a colon and contain multiple capital letters
+        # (but not if it looks like author names or affiliations)
+        if (line_stripped.endswith(":") and 
+            len(line_stripped) < 60 and 
+            sum(1 for c in line_stripped if c.isupper()) >= 2 and
+            not re.match(r"^[A-Z][\w\s]*[,.]?\s*$", line_stripped)):  # Exclude author-like lines
+            return True
+        
+        return False
+    
+    for i, line in enumerate(lines):
+        # Check if this line is a header
+        if is_section_header(line):
+            # Save previous section if it has content
             if current_section["content"].strip():
                 sections.append({
                     "section_name": current_section["section_name"],
@@ -82,27 +148,28 @@ def extract_sections_from_text(text: str, max_section_length: int = 1000) -> Lis
             
             # Start new section
             current_section = {
-                "section_name": line_stripped[:100],  # Limit name length
+                "section_name": line.strip()[:100],
                 "content": "",
                 "page_numbers": [],
-                "start_line": i
             }
         else:
+            # Add content to current section
             current_section["content"] += line + "\n"
             
-            # Split large sections
+            # If section gets too large, split it into continuation
             if len(current_section["content"]) > max_section_length:
-                if current_section["content"].strip():
-                    sections.append({
-                        "section_name": current_section["section_name"],
-                        "content": current_section["content"].strip(),
-                        "page_numbers": current_section["page_numbers"]
-                    })
+                # Save current large section
+                sections.append({
+                    "section_name": current_section["section_name"],
+                    "content": current_section["content"].strip(),
+                    "page_numbers": current_section["page_numbers"]
+                })
+                
+                # Start continuation
                 current_section = {
                     "section_name": f"{current_section['section_name']} (cont.)",
                     "content": "",
                     "page_numbers": [],
-                    "start_line": i
                 }
     
     # Add final section
@@ -113,13 +180,17 @@ def extract_sections_from_text(text: str, max_section_length: int = 1000) -> Lis
             "page_numbers": current_section["page_numbers"]
         })
     
-    return sections if sections else [
-        {
-            "section_name": "Full Text",
-            "content": text.strip(),
-            "page_numbers": list(range(1, int(text.count('\n') / 50) + 1))
-        }
-    ]
+    # If no sections were detected, return the whole text as one section
+    if not sections:
+        return [
+            {
+                "section_name": "Full Text",
+                "content": text.strip(),
+                "page_numbers": []
+            }
+        ]
+    
+    return sections
 
 
 def parse_pdf(pdf_bytes: bytes) -> Dict:
