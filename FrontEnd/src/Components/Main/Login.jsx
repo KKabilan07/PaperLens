@@ -78,8 +78,8 @@ const Login = ({ onClose, isLogin: initialIsLogin = false }) => {
         <h2>{isLoginMode ? 'Welcome Back' : 'Create Account'}</h2>
         <p className="subtitle">
           {isLoginMode 
-            ? 'Sign in to continue to ChatVerse' 
-            : 'Sign up to get started with ChatVerse'}
+            ? 'Sign in to continue to PaperLens' 
+            : 'Sign up to get started with PaperLens'}
         </p>
 
         {error && (

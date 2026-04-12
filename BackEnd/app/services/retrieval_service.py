@@ -4,7 +4,7 @@ Queries Supabase for contextually relevant sections
 """
 
 from typing import List, Dict
-from app.services.supabase_client import get_supabase_client
+from app.services.supabase_client import get_supabase
 from app.services.embeddings_service import embed_text
 
 
@@ -12,7 +12,7 @@ def search_sections(
     query: str,
     paper_id: str,
     top_k: int = 5,
-    threshold: float = 0.3
+    threshold: float = 0.1
 ) -> List[Dict]:
     """
     Search for relevant sections in a paper using semantic similarity
@@ -27,11 +27,17 @@ def search_sections(
         List of relevant sections with content, metadata, and similarity score
     """
     try:
+        print(f"\n[Search] Query: {query}")
+        print(f"[Search] Paper ID: {paper_id}")
+        
         # Generate embedding for query
+        print(f"[Search] Generating query embedding...")
         query_embedding = embed_text(query)
+        print(f"[Search] Query embedding generated: {len(query_embedding)} dims")
         
         # Query Supabase pgvector
-        supabase = get_supabase_client()
+        print(f"[Search] Calling Supabase RPC: sections_similarity_search...")
+        supabase = get_supabase()
         
         # Use pgvector similarity search
         response = supabase.rpc(
@@ -44,9 +50,16 @@ def search_sections(
             }
         ).execute()
         
-        return response.data if response.data else []
+        print(f"[Search] RPC Response: {response}")
+        results = response.data if response.data else []
+        print(f"[Search] Found {len(results)} sections")
+        
+        return results
     
     except Exception as e:
+        print(f"[Search] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise Exception(f"Error searching sections: {str(e)}")
 
 
@@ -68,7 +81,7 @@ def search_sections_across_papers(
     """
     try:
         query_embedding = embed_text(query)
-        supabase = get_supabase_client()
+        supabase = get_supabase()
         
         response = supabase.rpc(
             'sections_similarity_search_global',

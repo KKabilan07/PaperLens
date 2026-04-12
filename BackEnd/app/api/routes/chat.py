@@ -39,14 +39,25 @@ async def ask_question(
         paper_title = paper_response.data[0]["title"]
         
         # Generate RAG response (retrieval + generation)
-        rag_result = generate_rag_response(
-            question=request.question,
-            paper_id=request.paper_id,
-            paper_title=paper_title,
-            top_k=5  # Retrieve top 5 relevant sections
-        )
+        try:
+            rag_result = generate_rag_response(
+                question=request.question,
+                paper_id=request.paper_id,
+                paper_title=paper_title,
+                top_k=5  # Retrieve top 5 relevant sections
+            )
+        except Exception as rag_error:
+            print(f"RAG Pipeline Error: {str(rag_error)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"RAG Pipeline Error: {str(rag_error)}"
+            )
         
         answer = rag_result.get("answer", "Error generating response")
+        provider_used = rag_result.get("provider", None)
+        sources = rag_result.get("sources", [])
         status_code = rag_result.get("status", "unknown")
         
         # Store chat in database
@@ -57,21 +68,31 @@ async def ask_question(
             "paper_id": request.paper_id,
             "question": request.question,
             "answer": answer,
-            "status": status_code,
+            "provider_used": provider_used,
+            "sources": sources if sources else [],
             "created_at": datetime.utcnow().isoformat()
         }
         
-        supabase.table("chats").insert(chat_data).execute()
+        try:
+            supabase.table("chats").insert(chat_data).execute()
+        except Exception as db_error:
+            print(f"Database insert error (non-critical): {str(db_error)}")
+            # Don't fail if chat save fails - user still gets the answer
         
         return QuestionResponse(
             success=True,
             answer=answer,
-            chat_id=chat_id
+            chat_id=chat_id,
+            provider_used=provider_used,
+            sources=sources
         )
     
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Chat Endpoint Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error processing question: {str(e)}"
@@ -104,7 +125,7 @@ async def get_chat_history(
         
         # Fetch chat history
         chats_response = supabase.table("chats").select(
-            "id, question, answer, created_at, paper_id"
+            "id, question, answer, paper_id, provider_used, sources, created_at"
         ).eq("paper_id", paper_id).order("created_at", desc=False).execute()
         
         return [
@@ -113,6 +134,8 @@ async def get_chat_history(
                 question=chat["question"],
                 answer=chat["answer"],
                 paper_id=chat["paper_id"],
+                provider_used=chat.get("provider_used"),
+                sources=chat.get("sources"),
                 created_at=chat.get("created_at")
             )
             for chat in chats_response.data

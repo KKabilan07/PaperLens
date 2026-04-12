@@ -27,8 +27,8 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
       ...options.headers,
     }
 
-    // Make the request
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    // Make the request with /api/v1 prefix
+    const response = await fetch(`${API_BASE_URL}/api/v1${endpoint}`, {
       ...options,
       headers,
     })

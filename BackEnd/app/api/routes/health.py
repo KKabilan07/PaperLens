@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from app.services.embedding_storage_service import check_database_setup
 
 router = APIRouter()
 
@@ -24,3 +25,12 @@ def readiness_check():
         "ready": True,
         "service": "PaperLens API"
     }
+
+
+@router.get("/embeddings")
+def check_embeddings():
+    """
+    Check if embeddings/RAG system is properly configured
+    Verifies database schema, pgvector extension, and connectivity
+    """
+    return check_database_setup()

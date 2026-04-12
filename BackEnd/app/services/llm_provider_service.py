@@ -38,6 +38,7 @@ except ImportError:
 def _call_gemini(prompt: str) -> Optional[str]:
     """Call Gemini with fallback model discovery"""
     try:
+        print(f"[Gemini] Starting...")
         # Discover available model
         models = genai.list_models()
         model_name = None
@@ -45,17 +46,23 @@ def _call_gemini(prompt: str) -> Optional[str]:
         for model in models:
             if 'generateContent' in model.supported_generation_methods:
                 model_name = model.name.replace('models/', '')
+                print(f"[Gemini] Found model: {model_name}")
                 break
         
         if not model_name:
+            print(f"[Gemini] No suitable model found")
             return None
         
         model = genai.GenerativeModel(model_name)
+        print(f"[Gemini] Generating content...")
         response = model.generate_content(prompt)
+        print(f"[Gemini] Success!")
         return response.text
     
     except Exception as e:
-        print(f"Gemini error: {str(e)}")
+        print(f"[Gemini] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -144,32 +151,42 @@ def generate_with_fallback(
     if provider_order is None:
         provider_order = ["gemini", "claude", "groq"]
     
+    print(f"\n=== LLM Provider Fallback ===")
+    print(f"Providers available: {[p for p in provider_order if PROVIDERS[p]['available']]}")
+    
     # Try each provider in order
     for provider_name in provider_order:
         if not PROVIDERS[provider_name]["available"]:
-            print(f"Skipping {provider_name}: API key not configured")
+            print(f"⊘ {provider_name}: API key not configured")
             continue
         
-        print(f"Trying {provider_name}...")
+        print(f"\n→ Trying {provider_name}...")
         
         if provider_name == "gemini":
             answer = _call_gemini(prompt)
         elif provider_name == "claude":
+            print(f"[Claude] Starting...")
             answer = _call_claude(prompt)
         elif provider_name == "groq":
+            print(f"[Groq] Starting...")
             answer = _call_groq(prompt)
         else:
             answer = None
         
         if answer:
-            return {
+            result = {
                 "success": True,
                 "answer": answer,
                 "provider_used": provider_name,
                 "timestamp": datetime.now().isoformat()
             }
+            print(f"✓ {provider_name} succeeded! Answer length: {len(answer)} chars")
+            return result
+        else:
+            print(f"✗ {provider_name} returned None")
     
     # All providers failed
+    print(f"\n✗ All LLM providers failed")
     return {
         "success": False,
         "answer": "Error: All LLM providers failed. Please check API keys and rate limits.",

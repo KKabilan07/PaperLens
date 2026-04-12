@@ -32,6 +32,8 @@ class ChatResponse(BaseModel):
     question: str
     answer: Optional[str] = None
     paper_id: str
+    provider_used: Optional[str] = None
+    sources: Optional[List[str]] = None
     created_at: Optional[str] = None
 
 
@@ -49,3 +51,5 @@ class QuestionResponse(BaseModel):
     success: bool
     answer: str
     chat_id: str
+    provider_used: Optional[str] = None
+    sources: Optional[List[str]] = None

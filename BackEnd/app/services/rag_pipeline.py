@@ -6,6 +6,7 @@ Combines retrieval + multi-provider LLM generation for contextual answers
 from typing import Dict
 from app.services.retrieval_service import get_paper_context
 from app.services.llm_provider_service import generate_with_fallback
+import traceback
 
 
 def generate_rag_response(
@@ -27,10 +28,17 @@ def generate_rag_response(
         Dict with answer, sources, provider used, and status
     """
     try:
+        print(f"\n=== RAG Pipeline Started ===")
+        print(f"Question: {question}")
+        print(f"Paper ID: {paper_id}")
+        
         # Step 1: Retrieve relevant sections
+        print(f"Step 1: Retrieving context...")
         context = get_paper_context(question, paper_id, top_k)
+        print(f"Context retrieved: {len(context)} chars")
         
         if context.startswith("No relevant") or context.startswith("Error"):
+            print(f"No relevant context found")
             return {
                 "answer": "Could not find relevant sections in the paper. Try rephrasing your question.",
                 "sources": [],
@@ -39,6 +47,7 @@ def generate_rag_response(
             }
         
         # Step 2: Build RAG prompt
+        print(f"Step 2: Building RAG prompt...")
         rag_prompt = f"""You are an expert assistant analyzing a research paper.
 
 Paper Title: {paper_title}
@@ -54,18 +63,26 @@ Please provide a clear, accurate answer based only on the information in the pap
 If the answer is not in the provided sections, say "This information is not covered in the provided sections of the paper."""
         
         # Step 3: Generate answer using multi-provider LLM with fallback
+        print(f"Step 3: Calling LLM generate_with_fallback...")
         result = generate_with_fallback(rag_prompt)
+        print(f"LLM Result: {result}")
         
-        return {
+        final_response = {
             "answer": result.get("answer", "Error generating response"),
             "sources": [paper_title],
             "provider": result.get("provider_used"),
             "status": "success" if result.get("success") else "failed"
         }
+        print(f"RAG Pipeline Complete: {final_response}")
+        return final_response
     
     except Exception as e:
+        error_msg = f"Error generating answer: {str(e)}"
+        print(f"\n=== RAG Pipeline Error ===")
+        print(error_msg)
+        traceback.print_exc()
         return {
-            "answer": f"Error generating answer: {str(e)}",
+            "answer": error_msg,
             "sources": [],
             "provider": None,
             "status": "error"
