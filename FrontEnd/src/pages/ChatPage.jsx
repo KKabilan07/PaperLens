@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
-import './Main.css'
-import { useAuth } from '../../context/AuthContext'
-import { supabase } from '../../lib/supabase'
-import { assets } from '../../assets/assets'
-import { uploadPaper, getPapers, deletePaper } from '../../utils/paperService'
-import { askQuestion, getChatHistory } from '../../utils/chatService'
+import '../Components/Main/Main.css'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
+import { assets } from '../assets/assets'
+import { uploadPaper, getPapers, deletePaper } from '../utils/paperService'
+import { askQuestion, getChatHistory } from '../utils/chatService'
 
-const Main = () => {
-  const [showAuthModal, setShowAuthModal] = useState(false)
+const ChatPage = () => {
   const { user, loading } = useAuth()
   
   // Paper management state
@@ -26,10 +25,6 @@ const Main = () => {
   // File upload state
   const fileInputRef = useRef(null)
 
-  const handleClose = () => {
-    setShowAuthModal(false)
-  }
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
@@ -38,7 +33,7 @@ const Main = () => {
     }
   }
 
-  // Load papers on component mount or when user changes
+  // Load papers on component mount
   useEffect(() => {
     if (user) {
       loadPapers()
@@ -211,51 +206,19 @@ const Main = () => {
 
   if (loading) {
     return (
-      <div className="main">
-        <div className="nav">
-          <p>PaperLens</p>
-        </div>
-        <div className="main-container">
-          <div className="greet">
-            <p><span>Welcome to PaperLens</span></p>
-            <p>Your AI-Powered Research Assistant</p>
-          </div>
-          <button className="btn btn-getstarted" onClick={() => setShowAuthModal(true)}>
-            Get Started
-          </button>
-        </div>
-        {showAuthModal && <Login onClose={handleClose} isLogin={false} />}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading...
       </div>
     )
   }
 
-  // If not authenticated, show login/signup buttons
-  if (!user) {
-    return (
-      <div className="main">
-        <div className="nav">
-          <p>PaperLens</p>
-        </div>
-
-        <div className="main-container">
-          <div className="greet">
-            <p><span>Welcome to PaperLens</span></p>
-            <p>Your AI-Powered Research Assistant</p>
-          </div>
-
-          <div className="auth-buttons">
-            <button className="btn btn-getstarted" onClick={() => setShowAuthModal(true)}>
-              Getting Started
-            </button>
-          </div>
-        </div>
-
-        {showAuthModal && <Login onClose={handleClose} isLogin={false} />}
-      </div>
-    )
-  }
-
-  // If authenticated, show main chat interface with papers sidebar
   return (
     <div className="main">
       <div className="nav">
@@ -422,4 +385,4 @@ const Main = () => {
   )
 }
 
-export default Main
+export default ChatPage
