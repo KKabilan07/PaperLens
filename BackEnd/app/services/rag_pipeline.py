@@ -46,21 +46,59 @@ def generate_rag_response(
                 "status": "failed"
             }
         
-        # Step 2: Build RAG prompt
-        print(f"Step 2: Building RAG prompt...")
-        rag_prompt = f"""You are an expert assistant analyzing a research paper.
+#         # Step 2: Build RAG prompt
+#         print(f"Step 2: Building RAG prompt...")
+#         rag_prompt = f"""You are an expert assistant analyzing a research paper.
 
-Paper Title: {paper_title}
+# Paper Title: {paper_title}
 
-Based on the following sections from the paper, answer the user's question accurately and concisely.
+# Based on the following sections from the paper, answer the user's question accurately and concisely.
 
-PAPER CONTEXT:
-{context}
+# PAPER CONTEXT:
+# {context}
 
-USER QUESTION: {question}
+# USER QUESTION: {question}
 
-Please provide a clear, accurate answer based only on the information in the paper. 
-If the answer is not in the provided sections, say "This information is not covered in the provided sections of the paper."""
+# Please provide a clear, accurate answer based only on the information in the paper. 
+# If the answer is not in the provided sections, say "This information is not covered in the provided sections of the paper."""
+
+        print("Step 2: Building RAG prompt...")
+
+        rag_prompt = f"""
+        You are a highly precise research assistant. Your task is to answer questions strictly based on the provided research paper context.
+
+        ---------------------
+        PAPER TITLE:
+        {paper_title}
+        ---------------------
+
+        PAPER CONTEXT:
+        {context}
+        ---------------------
+
+        USER QUESTION:
+        {question}
+        ---------------------
+
+        INSTRUCTIONS:
+
+        1. Answer ONLY using the provided context.
+        2. Do NOT use prior knowledge or make assumptions.
+        3. If the answer is not explicitly present, respond with:
+        "This information is not covered in the provided sections of the paper."
+        4. Be concise, clear, and technically accurate.
+        5. If applicable, cite relevant phrases or sentences from the context.
+        6. Avoid repetition and unnecessary explanation.
+        7. If the question requires multiple points, present them in bullet form.
+
+        OUTPUT FORMAT:
+
+        Answer:
+        <your answer here>
+
+        (Optional) Supporting Evidence:
+        - "<exact or paraphrased snippet from context>"
+        """
         
         # Step 3: Generate answer using multi-provider LLM with fallback
         print(f"Step 3: Calling LLM generate_with_fallback...")
