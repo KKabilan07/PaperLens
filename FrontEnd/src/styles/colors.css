@@ -1,0 +1,77 @@
+/* Professional Color Palette - Modern & Vibrant */
+
+:root {
+  /* PRIMARY COLORS - Modern Palette */
+  --color-primary: #0088FC;           /* Vibrant Blue */
+  --color-primary-light: #E6F2FF;     /* Light Blue Background */
+  --color-secondary: #64DDE7;         /* Cyan/Turquoise */
+  --color-accent: #A7FBC5;            /* Light Mint Green */
+  --color-accent-dark: #85FAC1;       /* Mint Green */
+  --color-warm: #FFE7CB;              /* Warm Peach/Orange */
+  
+  /* BACKGROUNDS */
+  --color-bg-white: #FFFFFF;
+  --color-bg-light: #F8FAFC;
+  --color-bg-lighter: #F0F5FA;
+  
+  /* TEXT HIERARCHY */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94A3B8;
+  --color-text-light: #CBD5E1;
+  --color-text-inverse: #FFFFFF;
+  
+  /* SEMANTIC COLORS */
+  --color-error: #DC2626;
+  --color-error-light: #FEE2E2;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-success: #A7FBC5;
+  --color-success-light: #D1FAE5;
+  --color-info: #0088FC;
+  --color-info-light: #E6F2FF;
+  
+  /* BORDERS & DIVIDERS */
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+  --color-border-strong: #CBD5E1;
+  
+  /* SHADOWS */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 88, 252, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 88, 252, 0.08), 0 1px 2px 0 rgba(0, 88, 252, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 88, 252, 0.08), 0 2px 4px -1px rgba(0, 88, 252, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 88, 252, 0.08), 0 4px 6px -2px rgba(0, 88, 252, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 88, 252, 0.1), 0 10px 10px -5px rgba(0, 88, 252, 0.04);
+  
+  /* GRADIENTS */
+  --gradient-primary: linear-gradient(135deg, #0088FC 0%, #64DDE7 100%);
+  --gradient-warm: linear-gradient(135deg, #FFE7CB 0%, #FFD4A3 100%);
+  --gradient-accent: linear-gradient(135deg, #A7FBC5 0%, #85FAC1 100%);
+  --gradient-light: linear-gradient(135deg, #F8FAFC 0%, #F0F5FA 100%);
+}
+
+/* Utility */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.bg-white {
+  background-color: var(--color-bg-white);
+}
+
+.bg-light {
+  background-color: var(--color-bg-light);
+}
+
+.border {
+  border-color: var(--color-border);
+}
+

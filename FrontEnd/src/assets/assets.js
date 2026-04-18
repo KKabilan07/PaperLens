@@ -15,6 +15,7 @@ import gemini_icon from './gemini_icon.png'
 import generative_icon from './generative_icon.png'
 import user1_icon from './user1_icon.png'
 import user2_icon from './user2_icon.png'
+import logo from './logo.png'
 
 export const assets = {
     history_icon,
@@ -33,5 +34,6 @@ export const assets = {
     gemini_icon,
     generative_icon,
     user1_icon,
-    user2_icon
+    user2_icon,
+    logo
 }
