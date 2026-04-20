@@ -1,12 +1,65 @@
 """
 RAG (Retrieval Augmented Generation) Pipeline
 Combines retrieval + multi-provider LLM generation for contextual answers
+Intelligently routes queries based on type: summary, list sections, specific topic, or general
 """
 
 from typing import Dict
-from app.services.retrieval_service import get_paper_context
+from app.services.retrieval_service import (
+    get_paper_context, 
+    get_all_paper_sections,
+    get_paper_section_list,
+    find_matching_section,
+    get_section_by_name
+)
 from app.services.llm_provider_service import generate_with_fallback
 import traceback
+import re
+
+
+def classify_query_type(question: str) -> str:
+    """
+    Classify the type of query to route to appropriate handler
+    
+    Returns: 'summary', 'list_sections', 'specific_section', or 'general'
+    """
+    question_lower = question.lower().strip()
+    
+    # Summary queries
+    summary_keywords = [
+        r'\bsummarize\b', r'\bsummary\b', r'\boverall\b', 
+        r'\bwhat is the paper\b', r'\bpaper overview\b',
+        r'\btell me about the paper\b', r'\bwhat does the paper\b',
+        r'\bkey points\b', r'\bmain findings\b', r'\bwhole paper\b'
+    ]
+    
+    for keyword in summary_keywords:
+        if re.search(keyword, question_lower):
+            return 'summary'
+    
+    # List sections queries
+    list_keywords = [
+        r'\blist.*sections\b', r'\bwhat sections\b', r'\bshow.*sections\b',
+        r'\bget.*sections\b', r'\btable of contents\b', r'\bchapters\b',
+        r'\ball sections\b', r'\bavailable sections\b'
+    ]
+    
+    for keyword in list_keywords:
+        if re.search(keyword, question_lower):
+            return 'list_sections'
+    
+    # Specific section queries
+    section_keywords = [
+        r'\bintroduction\b', r'\babstract\b', r'\bconclusion\b',
+        r'\bmethod\b', r'\bresults\b', r'\bdiscussion\b',
+        r'\brelated work\b', r'\breferences\b', r'\bappendix\b'
+    ]
+    
+    for keyword in section_keywords:
+        if re.search(keyword, question_lower):
+            return 'specific_section'
+    
+    return 'general'
 
 
 def generate_rag_response(
@@ -17,6 +70,7 @@ def generate_rag_response(
 ) -> Dict[str, str]:
     """
     Generate answer using RAG pipeline with multi-provider LLM
+    Intelligently routes queries based on type
     
     Args:
         question: User's question
@@ -32,39 +86,140 @@ def generate_rag_response(
         print(f"Question: {question}")
         print(f"Paper ID: {paper_id}")
         
-        # Step 1: Retrieve relevant sections
-        print(f"Step 1: Retrieving context...")
-        context = get_paper_context(question, paper_id, top_k)
-        print(f"Context retrieved: {len(context)} chars")
+        # Classify the query type
+        query_type = classify_query_type(question)
+        print(f"Query Type: {query_type}")
         
-        if context.startswith("No relevant") or context.startswith("Error"):
-            print(f"No relevant context found")
-            return {
-                "answer": "Could not find relevant sections in the paper. Try rephrasing your question.",
-                "sources": [],
-                "provider": None,
-                "status": "failed"
-            }
+        # Step 1: Retrieve context based on query type
+        print(f"Step 1: Retrieving context ({query_type} mode)...")
         
-#         # Step 2: Build RAG prompt
-#         print(f"Step 2: Building RAG prompt...")
-#         rag_prompt = f"""You are an expert assistant analyzing a research paper.
+        if query_type == 'summary':
+            # Get all sections for summary
+            context = get_all_paper_sections(paper_id)
+            rag_prompt = f"""
+        You are a research paper summarization expert. Provide a comprehensive summary of the paper.
 
-# Paper Title: {paper_title}
+        ---------------------
+        PAPER TITLE:
+        {paper_title}
+        ---------------------
 
-# Based on the following sections from the paper, answer the user's question accurately and concisely.
+        PAPER CONTENT:
+        {context}
+        ---------------------
 
-# PAPER CONTEXT:
-# {context}
+        USER QUESTION:
+        {question}
+        ---------------------
 
-# USER QUESTION: {question}
+        INSTRUCTIONS:
+        1. Provide a comprehensive overview of the entire paper
+        2. Include key sections, main findings, and contributions
+        3. Be clear and well-structured
+        4. Organize by major sections if applicable
+        5. Highlight the most important information
 
-# Please provide a clear, accurate answer based only on the information in the paper. 
-# If the answer is not in the provided sections, say "This information is not covered in the provided sections of the paper."""
+        OUTPUT FORMAT:
+        Answer:
+        <comprehensive summary here>
+        """
+        
+        elif query_type == 'list_sections':
+            # Get all section names
+            sections = get_paper_section_list(paper_id)
+            if not sections:
+                return {
+                    "answer": "No sections found in the paper.",
+                    "sources": [paper_title],
+                    "provider": None,
+                    "status": "failed"
+                }
+            
+            sections_text = "\n".join([f"- {s}" for s in sections])
+            rag_prompt = f"""
+        You are a helpful assistant. The user is asking for a list of sections in the paper.
 
-        print("Step 2: Building RAG prompt...")
+        PAPER TITLE:
+        {paper_title}
 
-        rag_prompt = f"""
+        AVAILABLE SECTIONS:
+        {sections_text}
+
+        USER QUESTION:
+        {question}
+
+        INSTRUCTIONS:
+        1. List all available sections in the paper
+        2. Be clear and organized
+        3. You can briefly describe what each section covers if relevant
+
+        OUTPUT FORMAT:
+        Answer:
+        <list of sections with brief descriptions>
+        """
+        
+        elif query_type == 'specific_section':
+            # First try to find matching section by name
+            print(f"Step 1.1: Trying to find matching section by name...")
+            matching_section = find_matching_section(question, paper_id)
+            
+            if matching_section:
+                print(f"Step 1.2: Found matching section: {matching_section}")
+                context = get_section_by_name(paper_id, matching_section)
+            else:
+                print(f"Step 1.2: No direct section match, using semantic search...")
+                # Fall back to semantic search if no direct match
+                context = get_paper_context(question, paper_id, top_k=15)
+            
+            if not context or context.startswith("No relevant") or context.startswith("Error"):
+                return {
+                    "answer": "Could not find the requested section in the paper. Try asking about: Introduction, Abstract, Results, Discussion, or Methodology.",
+                    "sources": [paper_title],
+                    "provider": None,
+                    "status": "failed"
+                }
+            
+            rag_prompt = f"""
+        You are a research paper expert answering specific questions about paper sections.
+
+        ---------------------
+        PAPER TITLE:
+        {paper_title}
+        ---------------------
+
+        SECTION CONTENT:
+        {context}
+        ---------------------
+
+        USER QUESTION:
+        {question}
+        ---------------------
+
+        INSTRUCTIONS:
+        1. Answer using ONLY the provided section content
+        2. Be specific and detailed
+        3. Provide a comprehensive overview of the section
+        4. Include key points, findings, or information from the section
+        5. If the section is present, provide its full content summary
+        6. Avoid saying "not covered" if the section content is provided above
+
+        OUTPUT FORMAT:
+        Answer:
+        <your detailed answer about the section>
+        """
+        
+        else:  # general
+            # Standard retrieval for general questions
+            context = get_paper_context(question, paper_id, top_k)
+            if context.startswith("No relevant") or context.startswith("Error"):
+                return {
+                    "answer": "Could not find relevant sections in the paper. Try rephrasing your question.",
+                    "sources": [],
+                    "provider": None,
+                    "status": "failed"
+                }
+            
+            rag_prompt = f"""
         You are a highly precise research assistant. Your task is to answer questions strictly based on the provided research paper context.
 
         ---------------------
@@ -100,8 +255,10 @@ def generate_rag_response(
         - "<exact or paraphrased snippet from context>"
         """
         
-        # Step 3: Generate answer using multi-provider LLM with fallback
-        print(f"Step 3: Calling LLM generate_with_fallback...")
+        print(f"Context retrieved: {len(context)} chars")
+        
+        # Step 2: Generate answer using multi-provider LLM with fallback
+        print(f"Step 2: Calling LLM generate_with_fallback...")
         result = generate_with_fallback(rag_prompt)
         print(f"LLM Result: {result}")
         

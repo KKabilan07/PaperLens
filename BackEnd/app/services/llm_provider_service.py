@@ -36,7 +36,7 @@ except ImportError:
 
 
 def _call_gemini(prompt: str) -> Optional[str]:
-    """Call Gemini with fallback model discovery"""
+    """Call Gemini with fallback model discovery and retry logic"""
     try:
         print(f"[Gemini] Starting...")
         # Discover available model
@@ -55,12 +55,17 @@ def _call_gemini(prompt: str) -> Optional[str]:
         
         model = genai.GenerativeModel(model_name)
         print(f"[Gemini] Generating content...")
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt, request_options={"timeout": 120})  # Increase timeout to 120s
         print(f"[Gemini] Success!")
         return response.text
     
     except Exception as e:
-        print(f"[Gemini] Error: {str(e)}")
+        error_str = str(e)
+        # Handle rate limits gracefully
+        if "high demand" in error_str.lower() or "503" in error_str:
+            print(f"[Gemini] Error: Service temporarily unavailable - {error_str}")
+        else:
+            print(f"[Gemini] Error: {error_str}")
         import traceback
         traceback.print_exc()
         return None
@@ -71,9 +76,12 @@ def _call_claude(prompt: str) -> Optional[str]:
     try:
         api_key = os.getenv("CLAUDE_API_KEY")
         if not api_key:
+            print("[Claude] No API key found")
             return None
         
+        print("[Claude] Starting...")
         client = anthropic.Anthropic(api_key=api_key)
+        print("[Claude] Client created successfully")
         
         message = client.messages.create(
             model="claude-3-5-sonnet-20241022",  # Latest Claude model
@@ -83,48 +91,79 @@ def _call_claude(prompt: str) -> Optional[str]:
             ]
         )
         
+        print("[Claude] Success!")
         return message.content[0].text
     
     except anthropic.RateLimitError as e:
-        print(f"Claude rate limited: {str(e)}")
+        print(f"[Claude] Rate limited: {str(e)}")
+        return None
+    except AttributeError as e:
+        print(f"[Claude] API Error (outdated library?): {str(e)}")
+        print("[Claude] Please update: pip install --upgrade anthropic")
         return None
     except Exception as e:
-        print(f"Claude error: {str(e)}")
+        print(f"[Claude] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
 def _call_groq(prompt: str) -> Optional[str]:
-    """Call Groq API"""
+    """Call Groq API with fallback models"""
     try:
         if not HAS_GROQ:
             return None
         
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
+            print("[Groq] No API key found")
             return None
         
+        print("[Groq] Starting...")
         client = groq.Groq(api_key=api_key)
         
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant analyzing research papers. Provide clear, accurate, and concise answers."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            model="mixtral-8x7b-32768",  # Groq's fast model
-            temperature=0.7,
-            max_tokens=2048,
-        )
+        # Try multiple models in case one is decommissioned
+        models_to_try = [
+            "llama-3.2-90b-text-preview",  # Primary (newer)
+            "mixtral-8x7b-32768",           # Fallback
+            "llama2-70b-4096",              # Second fallback
+        ]
         
-        return chat_completion.choices[0].message.content
+        for model_name in models_to_try:
+            try:
+                print(f"[Groq] Trying model: {model_name}")
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant analyzing research papers. Provide clear, accurate, and concise answers."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    model=model_name,
+                    temperature=0.7,
+                    max_tokens=2048,
+                )
+                
+                print(f"[Groq] Success with {model_name}!")
+                return chat_completion.choices[0].message.content
+            except Exception as model_error:
+                if "decommissioned" in str(model_error).lower():
+                    print(f"[Groq] Model {model_name} decommissioned, trying next...")
+                    continue
+                else:
+                    raise model_error
+        
+        print("[Groq] All models failed")
+        return None
     
     except Exception as e:
-        print(f"Groq error: {str(e)}")
+        print(f"[Groq] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -165,10 +204,8 @@ def generate_with_fallback(
         if provider_name == "gemini":
             answer = _call_gemini(prompt)
         elif provider_name == "claude":
-            print(f"[Claude] Starting...")
             answer = _call_claude(prompt)
         elif provider_name == "groq":
-            print(f"[Groq] Starting...")
             answer = _call_groq(prompt)
         else:
             answer = None
@@ -187,9 +224,29 @@ def generate_with_fallback(
     
     # All providers failed
     print(f"\n✗ All LLM providers failed")
+    error_message = """❌ Error: All LLM providers failed. 
+
+**What to do:**
+
+1. **Gemini API** (Free tier: 20 req/day)
+   - ⏳ Wait for quota to reset (usually next day)
+   - 💳 Or upgrade to paid plan: https://ai.google.dev/gemini-api/
+
+2. **Claude API** (Requires credits)
+   - 💳 Add credits: https://console.anthropic.com/account/billing/overview
+   - Minimum $5 to start
+
+3. **Groq API** (FREE & FAST - Recommended!)
+   - ✅ Get free API key: https://console.groq.com
+   - Add to .env: GROQ_API_KEY=your_key_here
+   - Free tier is very generous
+
+**Quick Fix:** Get a Groq API key (it's free!) and add to your .env file.
+Then restart the server and try again."""
+    
     return {
         "success": False,
-        "answer": "Error: All LLM providers failed. Please check API keys and rate limits.",
+        "answer": error_message,
         "provider_used": None,
         "timestamp": datetime.now().isoformat()
     }

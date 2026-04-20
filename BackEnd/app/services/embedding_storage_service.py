@@ -9,12 +9,14 @@ from app.services.embeddings_service import embed_texts
 from app.services.supabase_client import get_supabase
 
 
-def chunk_section(content: str, chunk_size: int = 500, overlap: int = 100) -> List[Dict]:
+def chunk_section(content: str, section_name: str = "", chunk_size: int = 500, overlap: int = 100) -> List[Dict]:
     """
     Chunk a section into smaller pieces with overlap
+    Includes section name to improve semantic search
     
     Args:
         content: Section content
+        section_name: Name of the section (included in chunks for better search)
         chunk_size: Characters per chunk
         overlap: Overlap between chunks
     
@@ -27,13 +29,17 @@ def chunk_section(content: str, chunk_size: int = 500, overlap: int = 100) -> Li
     current_chunk = ""
     chunk_index = 0
     
+    # Prepare section header for inclusion
+    section_header = f"[Section: {section_name}]\n" if section_name else ""
+    
     for sentence in sentences:
         if len(current_chunk) + len(sentence) < chunk_size:
             current_chunk += sentence + ". "
         else:
             if current_chunk:
+                # Include section name in chunk content for better semantic search
                 chunks.append({
-                    "content": current_chunk.strip(),
+                    "content": f"{section_header}{current_chunk.strip()}",
                     "chunk_index": chunk_index
                 })
                 chunk_index += 1
@@ -44,7 +50,7 @@ def chunk_section(content: str, chunk_size: int = 500, overlap: int = 100) -> Li
     # Add last chunk
     if current_chunk:
         chunks.append({
-            "content": current_chunk.strip(),
+            "content": f"{section_header}{current_chunk.strip()}",
             "chunk_index": chunk_index
         })
     
@@ -95,7 +101,7 @@ def process_pdf_to_embeddings(
             print(f"\nStep 2.{section_idx}: Processing section '{section_name}'")
             
             # Step 3: Chunk the section
-            chunks = chunk_section(content)
+            chunks = chunk_section(content, section_name=section_name)
             print(f"  ✓ Created {len(chunks)} chunks")
             
             # Step 4: Generate embeddings for all chunks
