@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { CircleX } from 'lucide-react'
 import { DotSpinner } from 'ldrs/react'
 import 'ldrs/react/DotSpinner.css'
+import ReactMarkdown from 'react-markdown'
 import './ChatPage.css'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -359,7 +360,7 @@ const ChatPage = () => {
                         {msg.type === 'user' ? (
                           <p>{msg.text}</p>
                         ) : (
-                          <p>{msg.text}</p>
+                          <ReactMarkdown>{msg.text}</ReactMarkdown>
                         )}
                       </div>
                     </div>
