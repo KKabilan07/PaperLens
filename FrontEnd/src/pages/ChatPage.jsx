@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
-import '../Components/Main/Main.css'
+import { CircleX } from 'lucide-react'
+import { DotSpinner } from 'ldrs/react'
+import 'ldrs/react/DotSpinner.css'
+import './ChatPage.css'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { assets } from '../assets/assets'
@@ -90,7 +93,7 @@ const ChatPage = () => {
     if (!file) return
 
     setUploading(true)
-    setUploadProgress('Uploading...')
+    setUploadProgress('Uploading paper...')
     
     try {
       const title = file.name.replace('.pdf', '')
@@ -98,7 +101,7 @@ const ChatPage = () => {
       
       console.log('Upload response:', response)
       
-      setUploadProgress(`✓ Paper uploaded! Processing embeddings...`)
+      setUploadProgress('✓ Paper uploaded! Processing embeddings...')
       
       // Reload papers list
       await loadPapers()
@@ -177,18 +180,48 @@ const ChatPage = () => {
       // Get RAG response
       const response = await askQuestion(selectedPaper.id, userQuestion)
 
-      // Add bot response
+      // Add bot response with streaming effect
+      const botMessageId = Date.now() + 1
       setMessages(prev => [
         ...prev,
         {
-          id: Date.now() + 1,
+          id: botMessageId,
           type: 'bot',
-          text: response.answer,
+          text: '',
           provider: response.provider_used || 'Unknown',
           sources: response.sources || [],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          isStreaming: true
         }
       ])
+
+      // Stream the response text character by character
+      const fullText = response.answer
+      let displayedText = ''
+      
+      for (let i = 0; i < fullText.length; i++) {
+        displayedText += fullText[i]
+        
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === botMessageId
+              ? { ...msg, text: displayedText }
+              : msg
+          )
+        )
+        
+        // Add small delay for streaming effect (30ms per character)
+        await new Promise(resolve => setTimeout(resolve, 30))
+      }
+
+      // Mark streaming as complete
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === botMessageId
+            ? { ...msg, isStreaming: false }
+            : msg
+        )
+      )
 
       // Reload chat history to stay in sync
       await loadChatHistory(selectedPaper.id)
@@ -255,9 +288,16 @@ const ChatPage = () => {
             />
           </div>
 
-          {uploadProgress && (
+          {uploading && (
             <div className="upload-status">
-              {uploadProgress}
+              <DotSpinner
+                size="40"
+                speed="0.9"
+                color="#333"
+              />
+              <p style={{ marginTop: '12px', fontSize: '14px', color: '#666' }}>
+                {uploadProgress || 'Uploading paper...'}
+              </p>
             </div>
           )}
 
@@ -284,7 +324,7 @@ const ChatPage = () => {
                     className="btn-delete"
                     onClick={(e) => handleDeletePaper(paper.id, e)}
                   >
-                    🗑️
+                    <CircleX />
                   </button>
                 </div>
               ))
@@ -319,35 +359,11 @@ const ChatPage = () => {
                         {msg.type === 'user' ? (
                           <p>{msg.text}</p>
                         ) : (
-                          <>
-                            <p>{msg.text}</p>
-                            {msg.provider && (
-                              <span className="provider-badge">
-                                Answered by: {msg.provider}
-                              </span>
-                            )}
-                            {msg.sources && msg.sources.length > 0 && (
-                              <div className="sources">
-                                <strong>Sources:</strong>
-                                {msg.sources.map((source, idx) => (
-                                  <p key={idx} className="source">{source}</p>
-                                ))}
-                              </div>
-                            )}
-                          </>
+                          <p>{msg.text}</p>
                         )}
                       </div>
                     </div>
                   ))
-                )}
-                {loading_chat && (
-                  <div className="message bot loading">
-                    <div className="typing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
                 )}
               </div>
 

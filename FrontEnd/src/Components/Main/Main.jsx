@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { CircleX } from 'lucide-react'
 import './Main.css'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
@@ -324,8 +325,9 @@ const Main = () => {
                   <button
                     className="btn-delete"
                     onClick={(e) => handleDeletePaper(paper.id, e)}
+                    title="Delete this paper"
                   >
-                    🗑️
+                    <CircleX />
                   </button>
                 </div>
               ))

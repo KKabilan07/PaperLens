@@ -233,18 +233,40 @@
 }
 
 .btn-delete {
-  background: none;
+  background-color: transparent;
   border: none;
+  color: var(--color-error);
   cursor: pointer;
-  font-size: var(--font-size-base);
-  padding: var(--spacing-2);
-  opacity: 0.6;
-  transition: opacity var(--transition-normal);
+  padding: 6px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  min-width: 36px;
+}
+
+.btn-delete svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 .btn-delete:hover {
-  opacity: 1;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.btn-delete:hover svg {
+  stroke: currentColor;
+}
+
+.btn-delete:active {
+  transform: scale(0.95);
 }
 
 /* ===== CHAT AREA ===== */
