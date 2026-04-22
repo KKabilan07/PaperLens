@@ -213,7 +213,9 @@ const Main = () => {
     return (
       <div className="main">
         <div className="nav">
-          <p>PaperLens</p>
+          <div className="nav-logo">
+            <img src={assets.logo} alt="PaperLens" style={{ height: '32px', width: 'auto' }} />
+          </div>
         </div>
         <div className="main-container">
           <div className="greet">
@@ -234,7 +236,9 @@ const Main = () => {
     return (
       <div className="main">
         <div className="nav">
-          <p>PaperLens</p>
+          <div className="nav-logo">
+            <img src={assets.logo} alt="PaperLens" style={{ height: '32px', width: 'auto' }} />
+          </div>
         </div>
 
         <div className="main-container">
@@ -261,7 +265,6 @@ const Main = () => {
       <div className="nav">
         <div className="nav-logo">
           <img src={assets.logo} alt="PaperLens" style={{ height: '32px', width: 'auto' }} />
-          <span>PaperLens</span>
         </div>
         <div className="user-info">
           <span>{user.email}</span>
