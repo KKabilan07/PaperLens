@@ -55,7 +55,7 @@ def _call_gemini(prompt: str) -> Optional[str]:
         
         model = genai.GenerativeModel(model_name)
         print(f"[Gemini] Generating content...")
-        response = model.generate_content(prompt, request_options={"timeout": 120})  # Increase timeout to 120s
+        response = model.generate_content(prompt)
         print(f"[Gemini] Success!")
         return response.text
     

@@ -168,12 +168,22 @@ const ChatPage = () => {
 
     try {
       // Add user message immediately
+      const userMessageId = Date.now()
+      const thinkingMessageId = Date.now() + 0.5
+      
       setMessages([
         ...messages,
         {
-          id: Date.now(),
+          id: userMessageId,
           type: 'user',
           text: userQuestion,
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: thinkingMessageId,
+          type: 'bot',
+          text: 'Thinking...',
+          isThinking: true,
           timestamp: new Date().toISOString()
         }
       ])
@@ -181,10 +191,10 @@ const ChatPage = () => {
       // Get RAG response
       const response = await askQuestion(selectedPaper.id, userQuestion)
 
-      // Add bot response with streaming effect
+      // Remove thinking message and add bot response with streaming effect
       const botMessageId = Date.now() + 1
       setMessages(prev => [
-        ...prev,
+        ...prev.filter(msg => msg.id !== thinkingMessageId),
         {
           id: botMessageId,
           type: 'bot',
@@ -355,10 +365,19 @@ const ChatPage = () => {
                   </div>
                 ) : (
                   messages.map(msg => (
-                    <div key={msg.id} className={`message ${msg.type}`}>
+                    <div key={msg.id} className={`message ${msg.type} ${msg.isThinking ? 'thinking' : ''}`}>
                       <div className="message-content">
                         {msg.type === 'user' ? (
                           <p>{msg.text}</p>
+                        ) : msg.isThinking ? (
+                          <span>
+                            {msg.text}
+                            <span className="thinking-dots">
+                              <span>.</span>
+                              <span>.</span>
+                              <span>.</span>
+                            </span>
+                          </span>
                         ) : (
                           <ReactMarkdown>{msg.text}</ReactMarkdown>
                         )}

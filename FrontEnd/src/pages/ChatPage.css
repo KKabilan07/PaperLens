@@ -34,6 +34,9 @@
   gap: var(--spacing-4);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.3px;
 }
 
 .user-logout {
@@ -173,12 +176,14 @@
 
 .paper-title {
   margin: 0 0 var(--spacing-1) 0;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-family-display);
+  letter-spacing: 0.2px;
 }
 
 .paper-meta {
@@ -234,16 +239,18 @@
 }
 
 .chat-header {
-  padding: var(--spacing-6);
+  padding: var(--spacing-3) var(--spacing-4);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg-white);
 }
 
 .chat-header h2 {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+  letter-spacing: 0.2px;
 }
 
 .no-paper-selected {
@@ -308,17 +315,23 @@
   padding: var(--spacing-4);
   border-radius: var(--radius-lg);
   word-wrap: break-word;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-family: var(--font-family-base);
 }
 
 .message.user .message-content {
   background-color: var(--color-accent-lighter);
   color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.3px;
 }
 
 .message.bot .message-content {
   background-color: var(--color-bg-white);
   color: var(--color-text-primary);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-base);
+  line-height: 1.7;
 }
 
 .message-content p {
@@ -417,6 +430,20 @@
 .message-content a:hover {
   color: var(--color-accent-light);
   text-decoration: underline;
+}
+
+/* ===== THINKING INDICATOR ===== */
+.message.thinking .message-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.thinking-dots {
+  display: inline-flex;
+  gap: 4px;
 }
 
 @keyframes slideUp {
