@@ -34,7 +34,8 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={user ? <Navigate to="/chat" replace /> : <LoginPage initialView="landing" />} />
+      <Route path="/login" element={user ? <Navigate to="/chat" replace /> : <LoginPage initialView="form" />} />
       <Route
         path="/chat"
         element={
@@ -43,11 +44,7 @@ const AppContent = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/"
-        element={user ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />}
-      />
-      <Route path="*" element={<Navigate to={user ? "/chat" : "/login"} replace />} />
+      <Route path="*" element={<Navigate to={user ? "/chat" : "/"} replace />} />
     </Routes>
   )
 }
