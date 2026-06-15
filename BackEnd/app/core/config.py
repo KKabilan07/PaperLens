@@ -17,7 +17,8 @@ STORAGE_BUCKET = "papers"
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 # AI Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+LLAMA_PARSE_KEY = os.getenv("LLAMA_PARSE_KEY")
 
 # Database Configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
