@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPBasicCredentials
 from app.models.chat import ChatResponse, QuestionRequest, QuestionResponse
 from app.services.supabase_client import get_supabase
-from app.services.rag_pipeline import generate_rag_response
+from app.services.query_service import query_paper
 from app.utils.security import get_current_user
 import uuid
 from datetime import datetime
@@ -17,7 +17,7 @@ async def ask_question(
     credentials = Depends(security)
 ):
     """
-    Ask a question about a specific paper using RAG
+    Ask a question about a specific paper using RAG (LlamaIndex)
     Retrieves relevant sections and generates contextual answer
     """
     try:
@@ -36,15 +36,11 @@ async def ask_question(
                 detail="Paper not found"
             )
         
-        paper_title = paper_response.data[0]["title"]
-        
-        # Generate RAG response (retrieval + generation)
+        # Generate RAG response (LlamaIndex query)
         try:
-            rag_result = generate_rag_response(
+            rag_result = await query_paper(
                 question=request.question,
-                paper_id=request.paper_id,
-                paper_title=paper_title,
-                top_k=5  # Retrieve top 5 relevant sections
+                paper_id=request.paper_id
             )
         except Exception as rag_error:
             print(f"RAG Pipeline Error: {str(rag_error)}")
@@ -56,9 +52,8 @@ async def ask_question(
             )
         
         answer = rag_result.get("answer", "Error generating response")
-        provider_used = rag_result.get("provider", None)
+        provider_used = rag_result.get("provider_used", None)
         sources = rag_result.get("sources", [])
-        status_code = rag_result.get("status", "unknown")
         
         # Store chat in database
         chat_id = str(uuid.uuid4())

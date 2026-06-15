@@ -2,8 +2,7 @@ from fastapi import APIRouter, HTTPException, status, UploadFile, File, Depends
 from fastapi.security import HTTPBearer, HTTPBasicCredentials
 from app.models.paper import PaperResponse, PaperUploadResponse, PaperWithSections
 from app.services.supabase_client import get_supabase
-from app.services.pdf_parser import parse_pdf
-from app.services.embedding_storage_service import process_pdf_to_embeddings
+from app.services.ingestion_service import ingest_paper
 from app.utils.security import get_current_user
 from app.models.paper import Section, Paper
 import uuid
@@ -60,7 +59,6 @@ async def upload_paper(
     """
     try:
         user = get_current_user(credentials)
-        supabase = get_supabase()
         user_id = user["user_id"]
         
         # Validate file type - must be PDF
@@ -87,66 +85,21 @@ async def upload_paper(
                 detail=f"File size exceeds maximum limit of 50MB. Your file is {len(contents) / (1024*1024):.2f}MB"
             )
         
-        # Parse PDF
-        parsed_data = parse_pdf(contents)
-        
-        # Generate paper title
-        paper_title = title or parsed_data["metadata"].get("title") or file.filename
-        
-        # Create paper record
-        paper_id = str(uuid.uuid4())
-        paper_data = {
-            "id": paper_id,
-            "user_id": user_id,
-            "title": paper_title,
-            "description": parsed_data["metadata"].get("subject", ""),
-            "word_count": parsed_data["word_count"],
-            "page_count": parsed_data["num_pages"],
-            "file_path": f"papers/{user_id}/{paper_id}/{file.filename}",
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        
-        # Insert paper into database
-        supabase.table("papers").insert(paper_data).execute()
-        
-        # Store sections
-        sections_created = 0
-        for idx, section in enumerate(parsed_data["sections"]):
-            section_id = str(uuid.uuid4())
-            section_data = {
-                "id": section_id,
-                "paper_id": paper_id,
-                "section_name": section["section_name"],
-                "content": section["content"],
-                "page_numbers": section.get("page_numbers", []),
-                "created_at": datetime.utcnow().isoformat()
-            }
-            supabase.table("sections").insert(section_data).execute()
-            sections_created += 1
-        
-        # Upload PDF file to storage
-        file_path = f"{user_id}/{paper_id}/{file.filename}"
-        supabase.storage.from_("papers").upload(file_path, contents)
-        
-        # Generate embeddings for RAG (async-like, but we'll do it synchronously for now)
-        try:
-            embedding_result = process_pdf_to_embeddings(contents, paper_id, paper_title)
-            embedding_status = embedding_result.get("status", "unknown")
-            total_chunks = embedding_result.get("total_chunks", 0)
-        except Exception as e:
-            embedding_status = "failed"
-            total_chunks = 0
-            print(f"Embedding generation failed: {str(e)}")
+        # Ingest using LlamaIndex ingestion service
+        result = await ingest_paper(
+            pdf_bytes=contents,
+            file_name=file.filename,
+            user_id=user_id,
+            title=title
+        )
         
         return PaperUploadResponse(
-            success=True,
-            paper_id=paper_id,
-            title=paper_title,
-            sections_count=sections_created,
-            word_count=parsed_data["word_count"],
-            message=f"Paper '{paper_title}' uploaded successfully with {sections_created} sections. "
-                    f"Embeddings: {total_chunks} chunks processed ({embedding_status})"
+            success=result["success"],
+            paper_id=result["paper_id"],
+            title=result["title"],
+            sections_count=result["sections_count"],
+            word_count=result["word_count"],
+            message=result["message"]
         )
     
     except HTTPException:
