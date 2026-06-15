@@ -1,5 +1,9 @@
-from fastapi import APIRouter
+import logging
+from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
 from app.services.supabase_client import get_supabase
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -42,8 +46,12 @@ def check_embeddings():
             "table_accessible": True
         }
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Could not query sections table: {str(e)}",
-            "table_accessible": False
-        }
+        logger.error(f"Could not query sections table: {str(e)}", exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "error",
+                "message": "Database check failed",
+                "table_accessible": False
+            }
+        )

@@ -66,7 +66,7 @@ async def ingest_paper(
             "description": file_name,
             "word_count": word_count,
             "page_count": page_count,
-            "file_path": f"papers/{user_id}/{paper_id}/{file_name}",
+            "file_path": f"{user_id}/{paper_id}/{file_name}",
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
@@ -77,11 +77,11 @@ async def ingest_paper(
         nodes = splitter.get_nodes_from_documents(documents)
         
         # 4. Generate embeddings & prepare records for insertion
+        node_texts = [node.text for node in nodes]
+        embeddings = Settings.embed_model._get_text_embeddings(node_texts)
+        
         records_to_insert = []
-        for idx, node in enumerate(nodes):
-            # Generate embedding using global LlamaIndex Settings (Gemini embedding-001)
-            embedding = Settings.embed_model.get_text_embedding(node.text)
-            
+        for idx, (node, embedding) in enumerate(zip(nodes, embeddings)):
             # Determine a section name
             section_name = node.metadata.get("section_name", "Content")
             if section_name == "Content":

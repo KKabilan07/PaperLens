@@ -12,7 +12,7 @@ async def query_paper(question: str, paper_id: str) -> Dict:
     
     # 1. Fetch paper chunks from database
     response = supabase.table("sections") \
-        .select("content, section_name, chunk_index") \
+        .select("content, section_name, chunk_index, embedding") \
         .eq("paper_id", paper_id) \
         .order("chunk_index", desc=False) \
         .execute()
@@ -21,25 +21,34 @@ async def query_paper(question: str, paper_id: str) -> Dict:
         return {
             "answer": "This paper has no sections/chunks loaded in the database. Please re-upload it.",
             "sources": [],
-            "provider": Settings.llm.metadata.model_name,
+            "provider_used": Settings.llm.metadata.model_name,
             "status": "failed"
         }
         
-    # 2. Convert database records to LlamaIndex Documents
-    documents = []
+    # 2. Convert database records to LlamaIndex TextNodes with pre-computed embeddings
+    from llama_index.core.schema import TextNode
+    import json
+    nodes = []
     for record in response.data:
-        doc = Document(
+        embedding = record.get("embedding")
+        if isinstance(embedding, str):
+            try:
+                embedding = json.loads(embedding)
+            except:
+                pass
+                
+        node = TextNode(
             text=record["content"],
+            embedding=embedding,
             metadata={
                 "section_name": record.get("section_name", "Content"),
                 "chunk_index": record.get("chunk_index", 0)
             }
         )
-        documents.append(doc)
+        nodes.append(node)
         
-    # 3. Create an in-memory VectorStoreIndex from these documents
-    # Note: Creating index from documents will use the global embed_model
-    index = VectorStoreIndex.from_documents(documents)
+    # 3. Create an in-memory VectorStoreIndex from these nodes
+    index = VectorStoreIndex(nodes)
     
     # Determine if the query is asking for a summary
     question_lower = question.lower()
@@ -48,7 +57,7 @@ async def query_paper(question: str, paper_id: str) -> Dict:
     # 4. Create Query Engine with appropriate settings
     if is_summary_query:
         query_engine = index.as_query_engine(
-            similarity_top_k=min(15, len(documents)),
+            similarity_top_k=min(15, len(nodes)),
             response_mode="tree_summarize"
         )
     else:

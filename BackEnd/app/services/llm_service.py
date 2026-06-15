@@ -1,4 +1,5 @@
 import os
+import asyncio
 from typing import List, Any
 from llama_index.core import Settings
 from llama_index.core.embeddings import BaseEmbedding
@@ -43,10 +44,10 @@ class CustomGeminiEmbedding(BaseEmbedding):
         return result["embedding"]
 
     async def _aget_query_embedding(self, query: str) -> List[float]:
-        return self._get_query_embedding(query)
+        return await asyncio.to_thread(self._get_query_embedding, query)
         
     async def _aget_text_embedding(self, text: str) -> List[float]:
-        return self._get_text_embedding(text)
+        return await asyncio.to_thread(self._get_text_embedding, text)
 
 def init_llm():
     """
