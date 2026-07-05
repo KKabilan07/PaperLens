@@ -6,6 +6,10 @@ from app.api.api import router
 # Load environment variables from .env file
 load_dotenv()
 
+# Initialize LlamaIndex LLM and Embed settings
+from app.services.llm_service import init_llm
+init_llm()
+
 app = FastAPI(
     title="PaperLens API",
     description="Backend API for PaperLens - AI-powered paper analysis and collaboration",

@@ -1,5 +1,9 @@
-from fastapi import APIRouter
-from app.services.embedding_storage_service import check_database_setup
+import logging
+from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
+from app.services.supabase_client import get_supabase
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,6 +35,23 @@ def readiness_check():
 def check_embeddings():
     """
     Check if embeddings/RAG system is properly configured
-    Verifies database schema, pgvector extension, and connectivity
+    Verifies database schema connectivity
     """
-    return check_database_setup()
+    try:
+        supabase = get_supabase()
+        response = supabase.table("sections").select("id").limit(1).execute()
+        return {
+            "status": "success",
+            "message": "Database is ready for embeddings",
+            "table_accessible": True
+        }
+    except Exception as e:
+        logger.error(f"Could not query sections table: {str(e)}", exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "error",
+                "message": "Database check failed",
+                "table_accessible": False
+            }
+        )

@@ -1,0 +1,193 @@
+.app-sidebar {
+  width: 260px;
+  background-color: var(--color-bg-white);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  padding: var(--spacing-6) var(--spacing-4);
+  z-index: 10;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-2) var(--spacing-8) var(--spacing-2);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar-brand:hover {
+  opacity: 0.8;
+}
+
+.brand-logo {
+  height: 32px;
+  width: auto;
+}
+
+.brand-name {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--letter-spacing-wide);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.nav-item.active {
+  background-color: var(--color-accent-lighter);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+  margin-top: auto;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: var(--spacing-5);
+}
+
+.pro-badge-card {
+  background: var(--gradient-subtle);
+  border: 1px solid var(--color-accent-lighter);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow-xs);
+}
+
+.badge-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-1);
+}
+
+.sparkle-icon {
+  color: var(--color-accent);
+}
+
+.pro-badge-card h4 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  margin-bottom: 0;
+}
+
+.pro-badge-card p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: 0;
+}
+
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-2);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-email {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  margin-bottom: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--spacing-2);
+  border-top: 1px solid var(--color-border-light);
+  padding-top: var(--spacing-3);
+}
+
+.footer-link-item {
+  color: var(--color-text-tertiary);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  cursor: pointer;
+}
+
+.footer-link-item:hover {
+  color: var(--color-accent);
+  background-color: var(--color-accent-lighter);
+  text-decoration: none;
+}
+
+.footer-link-item.active {
+  color: var(--color-accent);
+  background-color: var(--color-accent-lighter);
+}
+
+.logout-btn:hover {
+  color: var(--color-error);
+  background-color: var(--color-error-light);
+}

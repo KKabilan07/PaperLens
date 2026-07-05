@@ -1,5 +1,5 @@
-/* Import Google Fonts - Montserrat & Lato (Modern & Geometric) */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Lato:wght@300;400;500;600;700&display=swap');
+/* Import Google Fonts — Crimson Pro & Inter */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Import Design System */
 @import './styles/themes.css';
@@ -24,7 +24,7 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
-  background-color: var(--color-bg-white);
+  background-color: var(--color-bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -84,17 +84,17 @@ input:disabled, textarea:disabled, select:disabled, button:disabled {
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-light);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
   transition: background var(--transition-fast);
 }
 
@@ -110,84 +110,56 @@ input:disabled, textarea:disabled, select:disabled, button:disabled {
   padding: 0 var(--spacing-4);
 }
 
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.flex {
-  display: flex;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.grid {
-  display: grid;
-}
-
-.hidden {
-  display: none;
-}
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.grid { display: grid; }
+.hidden { display: none; }
 
 /* Selection Styling */
 ::selection {
-  background-color: var(--color-accent-light);
+  background-color: var(--color-accent-lighter);
   color: var(--color-text-primary);
 }
 
 ::-moz-selection {
-  background-color: var(--color-accent-light);
+  background-color: var(--color-accent-lighter);
   color: var(--color-text-primary);
 }
 
-/* Loading Animations */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Global Background Decorations */
+.global-bg-decorations {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1000px;
+  height: 1000px;
+  pointer-events: none;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.decor-circle {
+  position: absolute;
+  border: 1px solid var(--color-accent-lighter);
+  border-radius: 50%;
+  transition: border-color var(--transition-slow);
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+.circle-lg { width: 900px; height: 900px; }
+.circle-md { width: 650px; height: 650px; }
+.circle-sm { width: 400px; height: 400px; }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.decor-line {
+  position: absolute;
+  height: 120px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--color-accent-lighter), transparent);
+  bottom: 0;
 }
