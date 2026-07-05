@@ -36,8 +36,9 @@ const AppContent = () => {
   const { user } = useAuth()
 
   return (
-    <Routes>
-      <Route path="/auth/callback" element={<AuthCallback />} />
+    <>
+      <Routes>
+        <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage initialView="landing" />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage initialView="form" />} />
       
@@ -84,7 +85,8 @@ const AppContent = () => {
       />
       
       <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 
