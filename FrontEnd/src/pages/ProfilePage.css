@@ -1,0 +1,82 @@
+/* ProfilePage — Dedicated Styles */
+.profile-layout {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+.profile-main {
+  flex: 1;
+  padding: var(--spacing-8) var(--spacing-10);
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.profile-header {
+  margin-bottom: var(--spacing-8);
+}
+
+.profile-header h1 {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-3xl);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.profile-header p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: 0;
+}
+
+.profile-card {
+  max-width: 600px;
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-card-title {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
+}
+
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.profile-field-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-1);
+  letter-spacing: var(--letter-spacing-widest);
+  text-transform: uppercase;
+}
+
+.profile-field-value {
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.profile-field-value.muted {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family-mono);
+}

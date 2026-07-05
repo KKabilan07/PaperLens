@@ -9,7 +9,7 @@
   display: flex;
   width: 100%;
   height: 100vh;
-  background-color: var(--color-bg-white);
+  background-color: var(--color-bg-primary);
 }
 
 .app-container {
@@ -29,15 +29,16 @@
 .card {
   background-color: var(--color-bg-white);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--spacing-6);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
 }
 
 .card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border-strong);
+  transform: translateY(-2px);
 }
 
 /* Responsive */
