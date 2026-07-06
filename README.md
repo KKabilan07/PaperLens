@@ -1,32 +1,69 @@
-# PaperLens
+<div align="center">
 
-PaperLens is an AI-powered academic paper analysis and collaboration platform. It allows researchers to upload PDF papers, parse and index them using advanced document parsing (LlamaParse), perform RAG-based (Retrieval-Augmented Generation) chat querying over documents, and view real-time research metrics on a modern dashboard.
+<img src="./FrontEnd/src/assets/logo.png" alt="PaperLens Logo" width="400"/>
+
+### AI-Powered Academic Paper Analysis & Collaboration Platform
+
+Upload papers, parse them with layout-aware AI, chat with your documents using RAG, and track research metrics — all in one place.
+
+[![Frontend](https://img.shields.io/badge/Frontend-Live-4ade80?style=for-the-badge&logo=vercel&logoColor=white)](https://paperlens-research.vercel.app/)
+[![Backend](https://img.shields.io/badge/Backend-Live-4ade80?style=for-the-badge&logo=render&logoColor=white)](https://paperlens-research.onrender.com)
+
+</div>
 
 ---
 
 ## 🔗 Live Deployments
 
-* **Frontend Web App (Vercel):** [https://paperlens-research.vercel.app/](https://paperlens-research.vercel.app/)
-* **Backend API (Render):** [https://paperlens-research.onrender.com](https://paperlens-research.onrender.com)
+| Service | Platform | Link |
+|---|---|---|
+| 🖥️ Frontend Web App | Vercel | [paperlens-research.vercel.app](https://paperlens-research.vercel.app/) |
+| ⚙️ Backend API | Render | [paperlens-research.onrender.com](https://paperlens-research.onrender.com) |
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-* **Core Framework:** React 18 (Vite SPA)
-* **Routing:** React Router v6
-* **State & Authentication:** Supabase Auth (OAuth Google Sign-In & Email/Password)
-* **Styling & Design:** Vanilla CSS with custom design tokens, modern typography, glassmorphism, and responsive layouts
-* **Icons:** Lucide React
+
+<p>
+<img src="https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"/>
+<img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"/>
+<img src="https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white" alt="React Router"/>
+<img src="https://img.shields.io/badge/Supabase_Auth-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase Auth"/>
+<img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3"/>
+<img src="https://img.shields.io/badge/Lucide_Icons-000000?style=for-the-badge&logo=lucide&logoColor=white" alt="Lucide"/>
+</p>
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Core Framework | React 18 (Vite SPA) | Fast, modern single-page app |
+| Routing | React Router v6 | Client-side navigation |
+| State & Auth | Supabase Auth | Google OAuth & Email/Password |
+| Styling | Vanilla CSS | Custom tokens, glassmorphism, responsive design |
+| Icons | Lucide React | Lightweight icon set |
 
 ### Backend
-* **Web Framework:** FastAPI (Python 3.10+)
-* **AI & Retrieval System (RAG):** LlamaIndex
-* **Large Language Model (LLM):** Gemini API (via LlamaIndex Gemini Integration)
-* **Document Parsing:** LlamaParse (advanced layout-aware PDF ingestion)
-* **Database & Storage:** Supabase (PostgreSQL database & object storage for PDF files)
-* **Authentication Verification:** Supabase JWT Verification middleware
+
+<p>
+<img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+<img src="https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+<img src="https://img.shields.io/badge/LlamaIndex-000000?style=for-the-badge&logo=meta&logoColor=white" alt="LlamaIndex"/>
+<img src="https://img.shields.io/badge/Gemini_API-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Gemini"/>
+<img src="https://img.shields.io/badge/LlamaParse-FF6B6B?style=for-the-badge&logo=llama&logoColor=white" alt="LlamaParse"/>
+<img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+<img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+</p>
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Web Framework | FastAPI (Python 3.10+) | High-performance async API |
+| RAG System | LlamaIndex | Retrieval-augmented generation pipeline |
+| LLM | Gemini API (via LlamaIndex) | Answering & summarization |
+| Document Parsing | LlamaParse | Layout-aware PDF ingestion |
+| Database & Storage | Supabase (PostgreSQL) | Data + PDF object storage |
+| Auth Verification | Supabase JWT middleware | Secure request validation |
 
 ---
 
@@ -70,18 +107,17 @@ PaperLens/
 
 ## 🚀 Key Features
 
-* **Secure Authentication:** User management through Supabase Auth including email sign-in and Google OAuth.
-* **Smart Dashboard:** Visualization of research summary stats (papers uploaded, questions asked, words indexed) and recent activities.
-* **Advanced Document Parsing:** Uses LlamaParse to extract content from complex tables, mathematical formulas, and layouts in scientific papers.
-* **Interactive RAG Chat:** Chat directly with your uploaded papers using Gemini API for context-rich Q&A and summarizing.
-* **Paper Repository:** Structured list of all uploaded papers with search capabilities, document preview, and details.
+- 🔐 **Secure Authentication** — User management via Supabase Auth, including email sign-in and Google OAuth.
+- 📊 **Smart Dashboard** — Visualize research stats (papers uploaded, questions asked, words indexed) and recent activity.
+- 📄 **Advanced Document Parsing** — LlamaParse extracts complex tables, formulas, and layouts from scientific papers.
+- 💬 **Interactive RAG Chat** — Chat directly with your uploaded papers via Gemini API for context-rich Q&A and summaries.
+- 🗂️ **Paper Repository** — Searchable list of uploaded papers with preview and details.
 
 ---
 
 ## ⚙️ Environment Configuration
 
 ### Frontend (`FrontEnd/.env`)
-Create a `.env` file in the `FrontEnd` directory:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -89,7 +125,6 @@ VITE_API_URL=http://localhost:8000 # Set to https://paperlens-research.onrender.
 ```
 
 ### Backend (`BackEnd/.env`)
-Create a `.env` file in the `BackEnd` directory:
 ```env
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key
@@ -103,50 +138,45 @@ LLAMA_PARSE_KEY=your_llamaparse_api_key
 ## 💻 Local Development Setup
 
 ### Backend Setup
-1. Navigate to the `BackEnd` folder:
-   ```bash
-   cd BackEnd
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   .\venv\Scripts\activate
-   # On macOS/Linux:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run the development server:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
+```bash
+cd BackEnd
 
-#### Running Backend with Docker
-Alternatively, you can build and run the backend using Docker:
-1. Build the Docker image:
-   ```bash
-   docker build -t paperlens-backend .
-   ```
-2. Run the Docker container (passing env variables via a `.env` file):
-   ```bash
-   docker run -p 8000:8000 --env-file .env paperlens-backend
-   ```
+# Create and activate a virtual environment
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
 
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the development server
+uvicorn app.main:app --reload --port 8000
+```
+
+#### 🐳 Running Backend with Docker
+```bash
+docker build -t paperlens-backend .
+docker run -p 8000:8000 --env-file .env paperlens-backend
+```
 
 ### Frontend Setup
-1. Navigate to the `FrontEnd` folder:
-   ```bash
-   cd ../FrontEnd
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:5173](http://localhost:5173) in your browser.
+```bash
+cd ../FrontEnd
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+<div align="center">
+
+Turning papers into conversations
+
+</div>
