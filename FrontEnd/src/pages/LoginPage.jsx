@@ -64,7 +64,7 @@ const LoginPage = ({ initialView = 'landing' }) => {
 
   const handleOAuthLogin = async (provider) => {
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`
+      const redirectUrl = window.location.origin
       await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
